@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab Status</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,300..900&family=Gabarito:wght@400..900&display=swap');
+        body {
+            font-family: "Figtree","Helvetica Neue",Arial,sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        .status-container {
+            text-align: center;
+        }
+        .status {
+            font-size: 3em;
+            margin: 0.5em 0;
+        }
+        .details {
+            font-size: 1.5em;
+            color: #555;
+        }
+        .green {
+            color: #009E60;
+        }
+        .red {
+            color: #A52A2A;
+        }
+        .button-31 {
+        background-color: #222;
+        border-radius: 4px;
+        border-style: none;
+        box-sizing: border-box;
+        color: #fff;
+        cursor: pointer;
+        display: inline-block;
+        font-family: "Figtree","Helvetica Neue",Arial,sans-serif;
+        font-size: 16px;
+        font-weight: 700;
+        line-height: 1.5;
+        margin: 0;
+        max-width: none;
+        min-height: 44px;
+        min-width: 10px;
+        outline: none;
+        overflow: hidden;
+        padding: 9px 20px 8px;
+        position: relative;
+        text-align: center;
+        text-transform: none;
+        user-select: none;
+        -webkit-user-select: none;
+        touch-action: manipulation;
+        margin-top: 2rem;
+        }
+
+        .button-31:hover,
+        .button-31:focus {
+        opacity: .75;
+        }
+    </style>
+</head>
+<body>
+    <div class="status-container">
+        <div id="labStatus" class="status">Loading...</div>
+        <div id="labDetails" class="details"></div>
+        <a href="https://docs.google.com/spreadsheets/d/1eTA4VoqQPxFHT6Obhh7mqMPt9NobhtFltPs5uEqRDZg/edit?gid=1242602315#gid=1242602315"><button class="button-31">Open Schedule</button></a>
+    </div>
+
+    <script>
+        async function fetchLabStatus() {
+            const url = 'https://script.google.com/macros/s/AKfycby6hU_SmPGOgEajvH5E3HKKCtLJuVj6xpLnOAWv2zySPswlFVgdg2VGoZ_Ga5cwl1pN/exec';
+            try {
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                const data = await response.json();
+                updateLabStatus(data);
+            } catch (error) {
+                document.getElementById('labStatus').textContent = 'Error fetching lab status';
+                document.getElementById('labDetails').textContent = error.message;
+            }
+        }
+
+        function updateLabStatus(data) {
+            const labStatusElement = document.getElementById('labStatus');
+            const labDetailsElement = document.getElementById('labDetails');
+            let details = '';
+
+            switch (data.state) {
+                case 'OPEN_ALLDAY':
+                    labStatusElement.innerHTML = 'ECEntials is <span class="green">OPEN</span> today';
+                    break;
+                case 'CLOSED_ALLDAY':
+                    labStatusElement.innerHTML = 'ECEntials is <span class="red">CLOSED</span> Today';
+                    break;
+                case 'OPEN':
+                    labStatusElement.innerHTML = 'ECEntials is currently <span class="green">OPEN</span>';
+                    details = `Closing at ${data.closeTime}`;
+                    break;
+                case 'CLOSED':
+                    labStatusElement.innerHTML = 'ECEntials is currently <span class="red">CLOSED</span>';
+                    details = `We will reopen at ${data.openTime}`;
+                    break;
+                case 'OPEN_RESTOFDAY':
+                    labStatusElement.innerHTML = 'ECEntials is <span class="green">OPEN</span> for the rest of the day';
+                    details = `Closing at ${data.closeTime} on ${data.closeDate}`;
+                    break;
+                case 'CLOSED_RESTOFDAY':
+                    labStatusElement.innerHTML = 'ECEntials is <span class="red">CLOSED</span> for the rest of the day';
+                    details = `We will reopen at ${data.openTime} on ${data.openDate}`;
+                    break;
+                default:
+                    labStatusElement.innerHTML = 'Unknown lab status';
+            }
+
+            labDetailsElement.textContent = details;
+        }
+
+        window.onload = fetchLabStatus;
+    </script>
+</body>
+</html>
